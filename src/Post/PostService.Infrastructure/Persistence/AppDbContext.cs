@@ -22,22 +22,39 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
+            entity.Property(x => x.Title)
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(x => x.Author)
+                .HasMaxLength(128)
+                .IsRequired(false);
+
             entity.HasOne(x=> x.Category)
                 .WithMany(x=> x.Posts)
                 .IsRequired(false);
 
             entity.OwnsOne(p => p.Content, cb =>
             {
-                cb.Property(c => c.Text).HasColumnName("ContentText");
-                cb.Property(c => c.Images).HasConversion(
+                cb
+                .Property(c => c.Text)
+                .IsRequired()
+                .HasColumnName("ContentText");
+
+                cb
+                .Property(c => c.Images)
+                .HasConversion(
                     images => JsonSerializer.Serialize(images, new JsonSerializerOptions()),
                     images => JsonSerializer.Deserialize<List<string>>(images, new JsonSerializerOptions())
-                ).HasColumnName("ContentImages");
+                )
+                .HasColumnName("ContentImages");
             });
 
             entity.OwnsMany(p => p.Tags, cb =>
             {
-                cb.Property(c => c.Name).HasColumnName("Tags");
+                cb.Property(c => c.Name)
+                    .IsRequired()
+                    .HasColumnName("Tags");
             });
         });
 

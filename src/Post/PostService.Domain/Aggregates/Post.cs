@@ -12,11 +12,14 @@ public class Post : BaseEntity<Guid>
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool IsPublished { get; set; } = false;
     public DateTime? PublishedAt { get; set; }
+    public string Author { get; set; }
 
     public List<Tag> Tags { get; set; }
     
     public virtual Guid? CategoryId { get; set; }
     public virtual Category Category { get; set; }
+
+    public virtual Guid? AuthorId { get; set; }
 
     public void EditTitle(string newTitle)
     {

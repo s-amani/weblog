@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,8 @@ var app = builder.Build();
 
 app.MapControllers();
 
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -48,5 +51,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "==> An error occurred while seeding the database.");
     }
 }
+
 
 app.Run();

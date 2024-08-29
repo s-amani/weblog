@@ -16,6 +16,7 @@ public class PostProfile : Profile
             .ForMember(x => x.Tags, src => src.MapFrom(v => string.Join(",", v.Tags.Select(c => c.Name))));
 
         CreateMap<PostCreateDTO, Post>()
+            .AfterMap((src, dest) => dest.Author = "Admin User") // temporary field, gonna be removed once we implemented user service
             .ForMember(x => x.Content, c => c.MapFrom(v => new PostContent { Text = v.Content }))
             .ForMember(x => x.Tags, c => c.MapFrom(v =>
                 new List<Tag>(
