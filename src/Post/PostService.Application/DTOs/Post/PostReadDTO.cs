@@ -1,6 +1,6 @@
 using System;
 
-namespace PostService.Application.DTOs;
+namespace PostService.Application.DTOs.Post;
 
 public class PostReadDTO
 {

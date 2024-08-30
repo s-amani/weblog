@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
-using PostService.Application.DTOs;
+using PostService.Application.DTOs.Post;
 using PostService.Domain.Aggregates;
 using PostService.Domain.ValueObjects;
 
@@ -12,6 +12,7 @@ public class PostProfile : Profile
     public PostProfile()
     {
         CreateMap<PostReadDTO, Post>();
+        
         CreateMap<Post, PostReadDTO>()
             .ForMember(x => x.Tags, src => src.MapFrom(v => string.Join(",", v.Tags.Select(c => c.Name))));
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using PostService.Application.DTOs;
+using PostService.Application.DTOs.Post;
 using PostService.Application.Interfaces;
 using PostService.Domain.Aggregates;
 using PostService.Domain.Repositories;
@@ -34,7 +34,23 @@ public class PostService : IPostService
         return model;
     }
 
+    public async Task<Post> Update(Guid id, PostUpdateDTO postDTO)
+    {
+        var model = await _repository.Get(id);
+
+        model.EditTitle(postDTO.Title);
+
+        model.EditContent(new Domain.ValueObjects.PostContent{ Text = postDTO.Content });
+
+        _repository.Update(model);
+
+        await _uow.CommitAsync();
+
+        return model;
+    }
+
     public async Task<PostReadDTO> Get(Guid id) => _mapper.Map<PostReadDTO>(await _repository.Get(id));
 
     public async Task<IEnumerable<PostReadDTO>> Get() => _mapper.Map<IEnumerable<PostReadDTO>>(await _repository.Get().ToListAsync());
+
 }

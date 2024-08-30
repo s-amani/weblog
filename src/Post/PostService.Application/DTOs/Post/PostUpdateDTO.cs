@@ -1,9 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace PostService.Application.DTOs;
+namespace PostService.Application.DTOs.Post;
 
-public class PostCreateDTO
+public class PostUpdateDTO
 {
 
     [Required]
@@ -12,10 +12,4 @@ public class PostCreateDTO
 
     [Required]
     public string Content { get; set; }
-
-    [Required]
-    [MaxLength(128)]
-    public string Tags { get; set; }
-
-    public Guid? CategoryId { get; set; }
 }
