@@ -5,4 +5,5 @@ namespace PostService.Domain.Repositories;
 
 public interface IPostRepository : IRepositoryBase<Guid, Post>
 {
+    IEnumerable<Post> GetPostsByCategoryId(Guid categoryId);
 }

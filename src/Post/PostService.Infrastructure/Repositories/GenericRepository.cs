@@ -9,7 +9,7 @@ namespace PostService.Infrastructure.Repositories;
 
 public class GenericRepository<TKey, TEntity> : IRepositoryBase<TKey, TEntity> where TEntity : BaseEntity<TKey>
 {
-    private readonly AppDbContext _dbContext;
+    protected readonly AppDbContext _dbContext;
 
     public GenericRepository(AppDbContext dbContext)
     {
@@ -18,6 +18,7 @@ public class GenericRepository<TKey, TEntity> : IRepositoryBase<TKey, TEntity> w
 
     public void Add(in TEntity entity) => _dbContext.Add(entity).State = Microsoft.EntityFrameworkCore.EntityState.Added;
     public void Update(in TEntity entity) => _dbContext.Update(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+    public void Remove(in TEntity entity) => _dbContext.Remove(entity);
     public async Task Remove(TKey id) => _dbContext.Remove(await _dbContext.FindAsync<TEntity>(id));
 
     public async Task<TEntity> Get(TKey id) => await _dbContext.Set<TEntity>().FindAsync(id);

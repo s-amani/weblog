@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using PostService.Domain.Aggreagates;
 using PostService.Domain.Aggregates;
 using PostService.Domain.Entities;
 using PostService.Domain.ValueObjects;
@@ -30,10 +31,6 @@ public class AppDbContext : DbContext
                 .HasMaxLength(128)
                 .IsRequired(false);
 
-            entity.HasOne(x=> x.Category)
-                .WithMany(x=> x.Posts)
-                .IsRequired(false);
-
             entity.OwnsOne(p => p.Content, cb =>
             {
                 cb
@@ -60,9 +57,9 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasMany(x => x.Posts)
-                .WithOne(x => x.Category)
-                .HasForeignKey(x => x.CategoryId);
+            entity.Property(x=> x.Title)
+                .IsRequired()
+                .HasMaxLength(128);
         });
     }
 }

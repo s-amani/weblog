@@ -1,3 +1,4 @@
+using PostService.Domain.Aggreagates;
 using PostService.Domain.Entities;
 using PostService.Domain.ValueObjects;
 using Weblog.Shared.Entities;
@@ -17,7 +18,6 @@ public class Post : BaseEntity<Guid>
     public List<Tag> Tags { get; set; }
     
     public virtual Guid? CategoryId { get; set; }
-    public virtual Category Category { get; set; }
 
     public virtual Guid? AuthorId { get; set; }
 
@@ -53,12 +53,6 @@ public class Post : BaseEntity<Guid>
     public void UpdateTags(List<Tag> newTags)
     {
         Tags = newTags ?? throw new ArgumentNullException(nameof(newTags));
-        UpdateTimestamp();
-    }
-
-    public void UpdateCategory(Category newCategory)
-    {
-        Category = newCategory ?? throw new ArgumentNullException(nameof(newCategory));
         UpdateTimestamp();
     }
 
