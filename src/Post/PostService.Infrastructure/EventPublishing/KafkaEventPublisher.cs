@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PostService.Domain.Events.Interface;
 
@@ -9,37 +10,68 @@ public class KafkaEventPublisher : IEventPublisher
 {
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaEventPublisher> _logger;
-    private readonly string _topic;
+    private readonly Dictionary<string, string> _topicMappings;
+    private readonly IConfiguration _configuration;
 
-    public KafkaEventPublisher(string brokerList, string topic, ILogger<KafkaEventPublisher> logger)
+    public KafkaEventPublisher(
+        string brokerList,
+        string topic,
+        ILogger<KafkaEventPublisher> logger,
+        IConfiguration configuration)
     {
         var config = new ProducerConfig
         {
             BootstrapServers = brokerList,
-            EnableIdempotence = true, 
-            Acks = Acks.All,          
+            EnableIdempotence = true,
+            Acks = Acks.All,
         };
 
         _producer = new ProducerBuilder<string, string>(config).Build();
-        _topic = topic;
+
+        // Load topic mappings from configuration
+        _topicMappings = new Dictionary<string, string>
+        {
+            { "CategoryCreated", _configuration["Kafka:Topics:CategoryEvents"] },
+            { "CategoryDeleted", _configuration["Kafka:Topics:CategoryEvents"] },
+            { "OrderPlaced", _configuration["Kafka:Topics:OrderEvents"] },
+            { "UserRegistered", _configuration["Kafka:Topics:UserEvents"] }
+            // Add more mappings dynamically as needed
+        };
+
         _logger = logger;
+        _configuration = configuration;
     }
 
-    public async Task Publish<T>(T eventToPublish) where T : class
+    public async Task Publish<T>(T eventToPublish, string eventType) where T : class
     {
         var key = Guid.NewGuid().ToString(); // Generate a unique key for the message
         var value = JsonSerializer.Serialize(eventToPublish); // Serialize the event to JSON
 
         try
         {
-            var result = await _producer.ProduceAsync(_topic, new Message<string, string> { Key = key, Value = value });
+            if (_topicMappings.TryGetValue(eventType, out string topic))
+            {
+                topic = GetTopicName(eventType);
+                
+                var result = await _producer.ProduceAsync(topic, new Message<string, string> { Key = key, Value = value });
 
-            _logger.LogInformation($"==> Delivered '{result.Value}' to '{result.TopicPartitionOffset}'");
+                _logger.LogInformation($"==> Delivered '{result.Value}' to '{result.TopicPartitionOffset}'");
+
+                return;
+            }
+
+            throw new InvalidOperationException($"No topic configured for event type {eventType}");
         }
         catch (ProduceException<string, string> e)
         {
             _logger.LogInformation($"==> Delivery failed: {e.Error.Reason}");
-            throw; 
+            throw;
         }
+    }
+
+    public string GetTopicName(string eventType)
+    {
+        // Example pattern: dev-{eventType.ToLower()}-events
+        return $"dev-{eventType.ToLower()}-events";
     }
 }
