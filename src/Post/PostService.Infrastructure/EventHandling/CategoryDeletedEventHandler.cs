@@ -12,9 +12,9 @@ public class CategoryDeletedEventHandler : IEventHandler<CategoryDeletedEvent>
 {
     private readonly IPostRepository _postRepository;
     private readonly IUnitOfWork _uow;
-    private readonly ILogger _logger;
+    private readonly ILogger<CategoryDeletedEventHandler> _logger;
 
-    public CategoryDeletedEventHandler(IPostRepository postRepository, IUnitOfWork uow, ILogger logger)
+    public CategoryDeletedEventHandler(IPostRepository postRepository, IUnitOfWork uow, ILogger<CategoryDeletedEventHandler> logger)
     {
         _uow = uow;
         _postRepository = postRepository;

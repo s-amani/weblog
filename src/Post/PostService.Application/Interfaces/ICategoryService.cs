@@ -12,4 +12,5 @@ public interface ICategoryService
     Task<CategoryReadDTO> Get(Guid id);
     Task<IEnumerable<CategoryReadDTO>> Get();
     Task<Category> Update(Guid id, CategoryUpdateDTO postDTO);
+    Task Delete(Guid id);
 }

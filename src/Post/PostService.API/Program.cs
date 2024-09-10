@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PostService.Application.Interfaces;
+using PostService.Domain.Events;
 using PostService.Domain.Events.Interface;
+using PostService.Domain.Interfaces;
 using PostService.Domain.Repositories;
 using PostService.Infrastructure.EventHandling;
 using PostService.Infrastructure.EventPublishing;
@@ -20,9 +23,15 @@ builder.Services.AddControllers();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+builder.Services.AddLogging();
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
 builder.Services.AddScoped<IPostService, PostService.Application.Services.PostService>();
+builder.Services.AddScoped<ICategoryService, PostService.Application.Services.CategoryService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -35,9 +44,15 @@ builder.Services.AddSingleton<IEventPublisher>(sp =>
     var brokerList = builder.Configuration["Kafka:BrokerList"];
     var topic = builder.Configuration["Kafka:Topic"];
     var logger = sp.GetRequiredService<ILogger<KafkaEventPublisher>>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
 
-    return new KafkaEventPublisher(brokerList, topic, logger);
+    return new KafkaEventPublisher(brokerList, topic, logger, configuration);
 });
+
+builder.Services.AddScoped<IEventHandler<CategoryDeletedEvent>, CategoryDeletedEventHandler>();
+
+// Register event handler dispatcher
+builder.Services.AddSingleton<EventHandlerDispatcher>();
 
 // Register Kafka Consumer as Hosted Service
 builder.Services.AddHostedService(sp =>
@@ -45,11 +60,13 @@ builder.Services.AddHostedService(sp =>
     var dispatcher = sp.GetRequiredService<EventHandlerDispatcher>();
 
     var brokerList = builder.Configuration["Kafka:BrokerList"];
-    var topic = builder.Configuration["Kafka:Topic"];
     var groupId = builder.Configuration["Kafka:GroupId"];
-    var logger = sp.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>();
+    var topics = builder.Configuration.GetSection("Kafka:Topics").Get<List<string>>();
 
-    return new KafkaConsumerBackgroundService(dispatcher, brokerList, topic, groupId, logger);
+    var logger = sp.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
+
+    return new KafkaConsumerBackgroundService(dispatcher, brokerList, topics, groupId, logger, configuration);
 });
 
 var app = builder.Build();

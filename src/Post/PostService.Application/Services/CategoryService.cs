@@ -10,7 +10,7 @@ using PostService.Domain.Aggreagates;
 using PostService.Domain.Events.Interface;
 using PostService.Domain.Events;
 
-namespace CategoryService.Application.Services;
+namespace PostService.Application.Services;
 
 public class CategoryService : ICategoryService
 {

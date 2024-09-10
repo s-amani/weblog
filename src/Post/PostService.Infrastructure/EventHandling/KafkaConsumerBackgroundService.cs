@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PostService.Domain.Events;
@@ -8,22 +9,26 @@ namespace PostService.Infrastructure.EventHandling;
 
 public class KafkaConsumerBackgroundService: BackgroundService
 {
+    private readonly IConfiguration _configuration;
     private readonly ILogger<KafkaConsumerBackgroundService> _logger;
     private readonly EventHandlerDispatcher _dispatcher;
 
     private readonly string _brokerList;
-    private readonly string _topic;
+    private readonly List<string> _topics;
     private readonly string _groupId;
 
-    public KafkaConsumerBackgroundService(EventHandlerDispatcher dispatcher, 
-        string brokerList, string topic, string groupId, 
-        ILogger<KafkaConsumerBackgroundService> logger)
+    public KafkaConsumerBackgroundService(EventHandlerDispatcher dispatcher,
+        string brokerList, List<string> topics, string groupId,
+        ILogger<KafkaConsumerBackgroundService> logger, IConfiguration configuration)
     {
+        _logger = logger;
+
         _dispatcher = dispatcher;
         _brokerList = brokerList;
-        _topic = topic;
+        _topics = topics;
         _groupId = groupId;
-        _logger = logger;
+        _configuration = configuration;
+
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -37,7 +42,7 @@ public class KafkaConsumerBackgroundService: BackgroundService
 
         using (var consumer = new ConsumerBuilder<string, string>(config).Build())
         {
-            consumer.Subscribe(_topic);
+            consumer.Subscribe(_topics);
 
             while (!stoppingToken.IsCancellationRequested)
             {

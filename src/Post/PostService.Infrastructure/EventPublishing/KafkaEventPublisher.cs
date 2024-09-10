@@ -31,11 +31,7 @@ public class KafkaEventPublisher : IEventPublisher
         // Load topic mappings from configuration
         _topicMappings = new Dictionary<string, string>
         {
-            { "CategoryCreated", _configuration["Kafka:Topics:CategoryEvents"] },
-            { "CategoryDeleted", _configuration["Kafka:Topics:CategoryEvents"] },
-            { "OrderPlaced", _configuration["Kafka:Topics:OrderEvents"] },
-            { "UserRegistered", _configuration["Kafka:Topics:UserEvents"] }
-            // Add more mappings dynamically as needed
+            { "CategoryDeleted", _configuration["Kafka:Topics:CategoryEvents"] }
         };
 
         _logger = logger;
