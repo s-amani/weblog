@@ -58,16 +58,16 @@ public class CategoryService : ICategoryService
         if (category is null)
             throw new NullReferenceException(nameof(category));
 
-        category.RemoveAssociatedPosts();
+        //category.RemoveAssociatedPosts();
 
-        _repository.Remove(category);
+        //_repository.Remove(category);
 
-        await _uow.CommitAsync();
+        //await _uow.CommitAsync();
 
         // Publish the CategoryDeletedEvent
         var categoryDeletedEvent = new CategoryDeletedEvent(id);
         
-        await _eventPublisher.Publish(categoryDeletedEvent, "category");
+        await _eventPublisher.Publish(categoryDeletedEvent, "delete-category");
     }
 
     public async Task<CategoryReadDTO> Get(Guid id) => _mapper.Map<CategoryReadDTO>(await _repository.Get(id));

@@ -42,11 +42,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IEventPublisher>(sp =>
 {
     var brokerList = builder.Configuration["Kafka:BrokerList"];
-    var topic = builder.Configuration["Kafka:Topic"];
-    var logger = sp.GetRequiredService<ILogger<KafkaEventPublisher>>();
-    var configuration = sp.GetRequiredService<IConfiguration>();
+    var topics = builder.Configuration.GetSection("Kafka:Topics").Get<List<string>>();
 
-    return new KafkaEventPublisher(brokerList, topic, logger, configuration);
+    var logger = sp.GetRequiredService<ILogger<KafkaEventPublisher>>();
+
+    return new KafkaEventPublisher(brokerList, topics, logger);
 });
 
 builder.Services.AddScoped<IEventHandler<CategoryDeletedEvent>, CategoryDeletedEventHandler>();
@@ -73,7 +73,7 @@ var app = builder.Build();
 
 app.MapControllers();
 
-app.UseMiddleware<ExceptionHandlerMiddleware>();
+//app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {

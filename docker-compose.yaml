@@ -64,6 +64,8 @@ services:
     ports:
       - "9092:9092"
       - "29092:29092"
+    volumes:
+      - ./kafka-config:/etc/kafka  # Mounting the local config directory
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

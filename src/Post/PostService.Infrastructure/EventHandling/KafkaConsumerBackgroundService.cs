@@ -7,7 +7,7 @@ using PostService.Domain.Events;
 
 namespace PostService.Infrastructure.EventHandling;
 
-public class KafkaConsumerBackgroundService: BackgroundService
+public class KafkaConsumerBackgroundService : BackgroundService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<KafkaConsumerBackgroundService> _logger;
@@ -29,11 +29,15 @@ public class KafkaConsumerBackgroundService: BackgroundService
         _groupId = groupId;
         _configuration = configuration;
 
+        _logger.LogInformation($"==> Topics: {string.Join(", ", _topics)}");
+
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var config = new ConsumerConfig
+        await Task.Run(async () => {
+
+            var config = new ConsumerConfig
         {
             BootstrapServers = _brokerList,
             GroupId = _groupId,
@@ -44,29 +48,51 @@ public class KafkaConsumerBackgroundService: BackgroundService
         {
             consumer.Subscribe(_topics);
 
-            while (!stoppingToken.IsCancellationRequested)
+            _logger.LogInformation("==> Kafka consumer service started");
+
+            try
             {
-                try
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    var consumeResult = consumer.Consume(stoppingToken);
-
-                    // Determine event type from the message
-                    var eventType = GetEventTypeFromMessage(consumeResult.Message.Value);
-                    var domainEvent = JsonSerializer.Deserialize(consumeResult.Message.Value, eventType);
-
-                    if (domainEvent is IDomainEvent domainEventInstance)
+                    try
                     {
-                        await _dispatcher.DispatchAsync(domainEventInstance, stoppingToken);
+                        var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(100));
+
+                        if (consumeResult is null)
+                            continue;
+
+                            
+                        _logger.LogInformation($"==> Consume Result: {consumeResult.Message.Key} - {consumeResult.Message.Value}");
+
+
+                        // Determine event type from the message
+                        var eventType = GetEventTypeFromMessage(consumeResult.Message.Value);
+                        var domainEvent = JsonSerializer.Deserialize(consumeResult.Message.Value, eventType);
+
+                        if (domainEvent is IDomainEvent domainEventInstance)
+                        {
+                            await _dispatcher.DispatchAsync(domainEventInstance, stoppingToken);
+                        }
                     }
-                }
-                catch (ConsumeException e)
-                {
-                    _logger.LogError($"==> Error consuming message: {e.Error.Reason}");
+                    catch (ConsumeException e)
+                    {
+                        _logger.LogError($"==> Error consuming message: {e.Error.Reason}");
+                    }
+
+                    await Task.Delay(100, stoppingToken);
                 }
             }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation("==> Kafka consumer service is stopping.");
+            }
+            finally
+            {
+                consumer.Close();
+            }
 
-            consumer.Close();
         }
+        });
     }
 
     private Type GetEventTypeFromMessage(string message)
@@ -74,7 +100,12 @@ public class KafkaConsumerBackgroundService: BackgroundService
         // Implement logic to determine the event type from the message
         // This could be based on a field in the message or some other metadata
         // Example pseudo-code:
+        _logger.LogInformation($"==> Message: {message}");
+
         var messageType = JsonDocument.Parse(message).RootElement.GetProperty("Type").GetString();
+
+
+        _logger.LogInformation($"==> Message Type: {message}");
 
         return messageType switch
         {

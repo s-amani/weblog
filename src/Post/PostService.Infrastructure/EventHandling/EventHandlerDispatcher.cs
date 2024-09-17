@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using PostService.Domain.Events;
 using PostService.Domain.Interfaces;
@@ -15,8 +17,10 @@ public class EventHandlerDispatcher
 
     public async Task DispatchAsync<TEvent>(TEvent domainEvent, CancellationToken cancellationToken) where TEvent : IDomainEvent
     {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+
         var handlerType = typeof(IEventHandler<>).MakeGenericType(domainEvent.GetType());
-        var handlers = _serviceProvider.GetServices(handlerType);
+        var handlers = scope.ServiceProvider.GetServices(handlerType);
 
         foreach (dynamic handler in handlers)
         {

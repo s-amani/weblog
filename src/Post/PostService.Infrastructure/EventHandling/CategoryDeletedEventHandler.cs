@@ -25,6 +25,8 @@ public class CategoryDeletedEventHandler : IEventHandler<CategoryDeletedEvent>
     {
         try
         {
+            _logger.LogInformation($"==> Handling {domainEvent.Type} event");
+            
             // Fetch and delete all posts associated with the deleted category
             var posts = _postRepository.GetPostsByCategoryId(domainEvent.CategoryId);
 

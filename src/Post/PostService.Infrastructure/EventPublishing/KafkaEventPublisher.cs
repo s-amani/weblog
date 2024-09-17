@@ -10,14 +10,12 @@ public class KafkaEventPublisher : IEventPublisher
 {
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaEventPublisher> _logger;
-    private readonly Dictionary<string, string> _topicMappings;
-    private readonly IConfiguration _configuration;
+    private readonly List<string> _topics;
 
     public KafkaEventPublisher(
         string brokerList,
-        string topic,
-        ILogger<KafkaEventPublisher> logger,
-        IConfiguration configuration)
+        List<string> topics,
+        ILogger<KafkaEventPublisher> logger)
     {
         var config = new ProducerConfig
         {
@@ -28,14 +26,8 @@ public class KafkaEventPublisher : IEventPublisher
 
         _producer = new ProducerBuilder<string, string>(config).Build();
 
-        // Load topic mappings from configuration
-        _topicMappings = new Dictionary<string, string>
-        {
-            { "CategoryDeleted", _configuration["Kafka:Topics:CategoryEvents"] }
-        };
-
+        _topics = topics;
         _logger = logger;
-        _configuration = configuration;
     }
 
     public async Task Publish<T>(T eventToPublish, string eventType) where T : class
@@ -45,10 +37,14 @@ public class KafkaEventPublisher : IEventPublisher
 
         try
         {
-            if (_topicMappings.TryGetValue(eventType, out string topic))
+            _logger.LogInformation($"==> List of Topics: {string.Join(", ", _topics ?? new List<string>())}");
+
+            _logger.LogInformation($"==> The event: {eventType} has been requested to be published to Kafka");
+
+            var topic = _topics.First(x => x == GetTopicName(eventType));
+            
+            if (!string.IsNullOrEmpty(topic))
             {
-                topic = GetTopicName(eventType);
-                
                 var result = await _producer.ProduceAsync(topic, new Message<string, string> { Key = key, Value = value });
 
                 _logger.LogInformation($"==> Delivered '{result.Value}' to '{result.TopicPartitionOffset}'");
@@ -68,6 +64,6 @@ public class KafkaEventPublisher : IEventPublisher
     public string GetTopicName(string eventType)
     {
         // Example pattern: dev-{eventType.ToLower()}-events
-        return $"dev-{eventType.ToLower()}-events";
+        return $"dev-{eventType.ToLower()}-event";
     }
 }
