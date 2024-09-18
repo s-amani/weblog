@@ -1,5 +1,3 @@
-using System.Text.Json;
-using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using PostService.Application.Interfaces;
 using PostService.Domain.Events;
@@ -14,7 +12,10 @@ public class CategoryDeletedEventHandler : IEventHandler<CategoryDeletedEvent>
     private readonly IUnitOfWork _uow;
     private readonly ILogger<CategoryDeletedEventHandler> _logger;
 
-    public CategoryDeletedEventHandler(IPostRepository postRepository, IUnitOfWork uow, ILogger<CategoryDeletedEventHandler> logger)
+    public CategoryDeletedEventHandler(
+        IUnitOfWork uow, 
+        IPostRepository postRepository, 
+        ILogger<CategoryDeletedEventHandler> logger)
     {
         _uow = uow;
         _postRepository = postRepository;
@@ -26,7 +27,7 @@ public class CategoryDeletedEventHandler : IEventHandler<CategoryDeletedEvent>
         try
         {
             _logger.LogInformation($"==> Handling {domainEvent.Type} event");
-            
+
             // Fetch and delete all posts associated with the deleted category
             var posts = _postRepository.GetPostsByCategoryId(domainEvent.CategoryId);
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using PostService.Domain.Events;
 using PostService.Domain.Events.Interface;
 
 namespace PostService.Infrastructure.EventPublishing;
@@ -10,12 +11,12 @@ public class KafkaEventPublisher : IEventPublisher
 {
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaEventPublisher> _logger;
-    private readonly List<string> _topics;
+    private readonly IConfiguration _configuration;
 
     public KafkaEventPublisher(
         string brokerList,
-        List<string> topics,
-        ILogger<KafkaEventPublisher> logger)
+        ILogger<KafkaEventPublisher> logger,
+        IConfiguration configuration)
     {
         var config = new ProducerConfig
         {
@@ -26,8 +27,8 @@ public class KafkaEventPublisher : IEventPublisher
 
         _producer = new ProducerBuilder<string, string>(config).Build();
 
-        _topics = topics;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task Publish<T>(T eventToPublish, string eventType) where T : class
@@ -37,11 +38,9 @@ public class KafkaEventPublisher : IEventPublisher
 
         try
         {
-            _logger.LogInformation($"==> List of Topics: {string.Join(", ", _topics ?? new List<string>())}");
-
             _logger.LogInformation($"==> The event: {eventType} has been requested to be published to Kafka");
 
-            var topic = _topics.First(x => x == GetTopicName(eventType));
+            var topic = GetTopicName(eventType);
             
             if (!string.IsNullOrEmpty(topic))
             {
@@ -61,9 +60,9 @@ public class KafkaEventPublisher : IEventPublisher
         }
     }
 
-    public string GetTopicName(string eventType)
+    public string GetTopicName(string eventType) => eventType switch
     {
-        // Example pattern: dev-{eventType.ToLower()}-events
-        return $"dev-{eventType.ToLower()}-event";
-    }
+        nameof(CategoryDeletedEvent) => _configuration["Kafka:Topics:CategoryEvents"],
+        _ => throw new NotImplementedException()
+    };
 }

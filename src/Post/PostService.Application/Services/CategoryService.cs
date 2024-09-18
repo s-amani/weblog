@@ -67,7 +67,7 @@ public class CategoryService : ICategoryService
         // Publish the CategoryDeletedEvent
         var categoryDeletedEvent = new CategoryDeletedEvent(id);
         
-        await _eventPublisher.Publish(categoryDeletedEvent, "delete-category");
+        await _eventPublisher.Publish(categoryDeletedEvent, nameof(CategoryDeletedEvent));
     }
 
     public async Task<CategoryReadDTO> Get(Guid id) => _mapper.Map<CategoryReadDTO>(await _repository.Get(id));

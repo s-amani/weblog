@@ -42,11 +42,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IEventPublisher>(sp =>
 {
     var brokerList = builder.Configuration["Kafka:BrokerList"];
-    var topics = builder.Configuration.GetSection("Kafka:Topics").Get<List<string>>();
 
     var logger = sp.GetRequiredService<ILogger<KafkaEventPublisher>>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
 
-    return new KafkaEventPublisher(brokerList, topics, logger);
+    return new KafkaEventPublisher(brokerList, logger, configuration);
 });
 
 builder.Services.AddScoped<IEventHandler<CategoryDeletedEvent>, CategoryDeletedEventHandler>();
@@ -61,12 +61,11 @@ builder.Services.AddHostedService(sp =>
 
     var brokerList = builder.Configuration["Kafka:BrokerList"];
     var groupId = builder.Configuration["Kafka:GroupId"];
-    var topics = builder.Configuration.GetSection("Kafka:Topics").Get<List<string>>();
 
     var logger = sp.GetRequiredService<ILogger<KafkaConsumerBackgroundService>>();
     var configuration = sp.GetRequiredService<IConfiguration>();
 
-    return new KafkaConsumerBackgroundService(dispatcher, brokerList, topics, groupId, logger, configuration);
+    return new KafkaConsumerBackgroundService(dispatcher, brokerList, groupId, logger, configuration);
 });
 
 var app = builder.Build();

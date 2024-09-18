@@ -17,17 +17,23 @@ public class KafkaConsumerBackgroundService : BackgroundService
     private readonly List<string> _topics;
     private readonly string _groupId;
 
-    public KafkaConsumerBackgroundService(EventHandlerDispatcher dispatcher,
-        string brokerList, List<string> topics, string groupId,
+    public KafkaConsumerBackgroundService(
+        EventHandlerDispatcher dispatcher,
+        string brokerList,
+        string groupId,
         ILogger<KafkaConsumerBackgroundService> logger, IConfiguration configuration)
     {
         _logger = logger;
 
         _dispatcher = dispatcher;
         _brokerList = brokerList;
-        _topics = topics;
         _groupId = groupId;
         _configuration = configuration;
+
+        _topics = new List<string>
+        {
+            _configuration["Kafka:Topics:CategoryEvents"]
+        };
 
         _logger.LogInformation($"==> Topics: {string.Join(", ", _topics)}");
 
@@ -35,63 +41,64 @@ public class KafkaConsumerBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Task.Run(async () => {
+        await Task.Run(async () =>
+        {
 
             var config = new ConsumerConfig
-        {
-            BootstrapServers = _brokerList,
-            GroupId = _groupId,
-            AutoOffsetReset = AutoOffsetReset.Earliest
-        };
-
-        using (var consumer = new ConsumerBuilder<string, string>(config).Build())
-        {
-            consumer.Subscribe(_topics);
-
-            _logger.LogInformation("==> Kafka consumer service started");
-
-            try
             {
-                while (!stoppingToken.IsCancellationRequested)
+                BootstrapServers = _brokerList,
+                GroupId = _groupId,
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+
+            using (var consumer = new ConsumerBuilder<string, string>(config).Build())
+            {
+                consumer.Subscribe(_topics);
+
+                _logger.LogInformation("==> Kafka consumer service started");
+
+                try
                 {
-                    try
+                    while (!stoppingToken.IsCancellationRequested)
                     {
-                        var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(100));
-
-                        if (consumeResult is null)
-                            continue;
-
-                            
-                        _logger.LogInformation($"==> Consume Result: {consumeResult.Message.Key} - {consumeResult.Message.Value}");
-
-
-                        // Determine event type from the message
-                        var eventType = GetEventTypeFromMessage(consumeResult.Message.Value);
-                        var domainEvent = JsonSerializer.Deserialize(consumeResult.Message.Value, eventType);
-
-                        if (domainEvent is IDomainEvent domainEventInstance)
+                        try
                         {
-                            await _dispatcher.DispatchAsync(domainEventInstance, stoppingToken);
+                            var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(100));
+
+                            if (consumeResult is null)
+                                continue;
+
+
+                            _logger.LogInformation($"==> Consume Result: {consumeResult.Message.Key} - {consumeResult.Message.Value}");
+
+
+                            // Determine event type from the message
+                            var eventType = GetEventTypeFromMessage(consumeResult.Message.Value);
+                            var domainEvent = JsonSerializer.Deserialize(consumeResult.Message.Value, eventType);
+
+                            if (domainEvent is IDomainEvent domainEventInstance)
+                            {
+                                await _dispatcher.DispatchAsync(domainEventInstance, stoppingToken);
+                            }
                         }
-                    }
-                    catch (ConsumeException e)
-                    {
-                        _logger.LogError($"==> Error consuming message: {e.Error.Reason}");
-                    }
+                        catch (ConsumeException e)
+                        {
+                            _logger.LogError($"==> Error consuming message: {e.Error.Reason}");
+                        }
 
-                    await Task.Delay(100, stoppingToken);
+                        await Task.Delay(100, stoppingToken);
+                    }
                 }
-            }
-            catch (OperationCanceledException ex)
-            {
-                _logger.LogInformation("==> Kafka consumer service is stopping.");
-            }
-            finally
-            {
-                consumer.Close();
-            }
+                catch (OperationCanceledException ex)
+                {
+                    _logger.LogInformation("==> Kafka consumer service is stopping.");
+                }
+                finally
+                {
+                    consumer.Close();
+                }
 
-        }
+            }
         });
     }
 
