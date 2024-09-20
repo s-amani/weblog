@@ -68,4 +68,19 @@ public class PostController : ControllerBase
 
         return Ok(model);
     }
+
+    [HttpPost]
+    [Route("ChangeStatus")]
+    public async Task<ActionResult> ChangeStatus(Guid? id)
+    {
+        if (id is null) return BadRequest();
+
+        var model = await _postService.Get(id.Value);
+
+        if (model is null) return NotFound();
+
+        await _postService.ChangePublishStatus(id.Value);
+
+        return Ok();
+    }
 }

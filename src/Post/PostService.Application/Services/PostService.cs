@@ -53,4 +53,15 @@ public class PostService : IPostService
 
     public async Task<IEnumerable<PostReadDTO>> Get() => _mapper.Map<IEnumerable<PostReadDTO>>(await _repository.Get().ToListAsync());
 
+    public async Task ChangePublishStatus(Guid id)
+    {
+        var model = await _repository.Get(id);
+
+        if (model is null) 
+            throw new ArgumentNullException(nameof(model));
+
+        model.ChangePublishStatus(isPublished: !model.IsPublished);
+
+        await _uow.CommitAsync();
+    }
 }

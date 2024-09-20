@@ -4,6 +4,7 @@ using PostService.Domain.Aggreagates;
 using PostService.Domain.Aggregates;
 using PostService.Domain.Entities;
 using PostService.Domain.ValueObjects;
+using PostService.Infrastructure.Persistence.Configuration;
 
 namespace PostService.Infrastructure.Persistence;
 
@@ -21,45 +22,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Post>(entity =>
-        {
-            entity.Property(x => x.Title)
-                .HasMaxLength(256)
-                .IsRequired();
-
-            entity.Property(x => x.Author)
-                .HasMaxLength(128)
-                .IsRequired(false);
-
-            entity.OwnsOne(p => p.Content, cb =>
-            {
-                cb
-                .Property(c => c.Text)
-                .IsRequired()
-                .HasColumnName("ContentText");
-
-                cb
-                .Property(c => c.Images)
-                .HasConversion(
-                    images => JsonSerializer.Serialize(images, new JsonSerializerOptions()),
-                    images => JsonSerializer.Deserialize<List<string>>(images, new JsonSerializerOptions())
-                )
-                .HasColumnName("ContentImages");
-            });
-
-            entity.OwnsMany(p => p.Tags, cb =>
-            {
-                cb.Property(c => c.Name)
-                    .IsRequired()
-                    .HasColumnName("Tags");
-            });
-        });
-
-        modelBuilder.Entity<Category>(entity =>
-        {
-            entity.Property(x=> x.Title)
-                .IsRequired()
-                .HasMaxLength(128);
-        });
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CategoryConfiguration).Assembly);
     }
+
 }

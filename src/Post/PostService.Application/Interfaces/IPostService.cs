@@ -13,4 +13,5 @@ public interface IPostService
     Task<PostReadDTO> Get(Guid id);
     Task<IEnumerable<PostReadDTO>> Get();
     Task<Post> Update(Guid id, PostUpdateDTO postDTO);
+    Task ChangePublishStatus(Guid value);
 }

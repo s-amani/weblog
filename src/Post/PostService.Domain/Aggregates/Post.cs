@@ -60,4 +60,9 @@ public class Post : BaseEntity<Guid>
     {
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void ChangePublishStatus(bool isPublished)
+    {
+        IsPublished = isPublished;
+    }
 }
