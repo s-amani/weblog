@@ -29,9 +29,9 @@ public class CategoryController : ControllerBase
 
         if (id is null) return BadRequest();
 
-        // var model = await _service.Get(id.Value);
+        var model = await _service.Get(id.Value);
 
-        // if (model is null) return NotFound();
+        if (model is null) return NotFound();
 
         await _service.Delete(id.Value);
 

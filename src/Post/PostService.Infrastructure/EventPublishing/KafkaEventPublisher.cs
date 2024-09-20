@@ -33,8 +33,8 @@ public class KafkaEventPublisher : IEventPublisher
 
     public async Task Publish<T>(T eventToPublish, string eventType) where T : class
     {
-        var key = Guid.NewGuid().ToString(); // Generate a unique key for the message
-        var value = JsonSerializer.Serialize(eventToPublish); // Serialize the event to JSON
+        var key = Guid.NewGuid().ToString(); 
+        var value = JsonSerializer.Serialize(eventToPublish); 
 
         try
         {

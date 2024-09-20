@@ -8,17 +8,17 @@ namespace PostService.Infrastructure.EventHandling;
 
 public class CategoryDeletedEventHandler : IEventHandler<CategoryDeletedEvent>
 {
-    private readonly IPostRepository _postRepository;
+    private readonly ICategoryRepository _repository;
     private readonly IUnitOfWork _uow;
     private readonly ILogger<CategoryDeletedEventHandler> _logger;
 
     public CategoryDeletedEventHandler(
         IUnitOfWork uow, 
-        IPostRepository postRepository, 
+        ICategoryRepository repository, 
         ILogger<CategoryDeletedEventHandler> logger)
     {
         _uow = uow;
-        _postRepository = postRepository;
+        _repository = repository;
         _logger = logger;
     }
 
@@ -29,12 +29,12 @@ public class CategoryDeletedEventHandler : IEventHandler<CategoryDeletedEvent>
             _logger.LogInformation($"==> Handling {domainEvent.Type} event");
 
             // Fetch and delete all posts associated with the deleted category
-            var posts = _postRepository.GetPostsByCategoryId(domainEvent.CategoryId);
+            var category = await _repository.Get(domainEvent.CategoryId);
 
-            foreach (var post in posts)
-            {
-                _postRepository.Remove(post);
-            }
+            if (category is null)
+                return;
+
+            category.RemoveAssociatedPosts();
 
             // Commit the transaction
             await _uow.CommitAsync(cancellationToken);

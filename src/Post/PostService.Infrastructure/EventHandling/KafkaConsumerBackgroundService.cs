@@ -104,9 +104,6 @@ public class KafkaConsumerBackgroundService : BackgroundService
 
     private Type GetEventTypeFromMessage(string message)
     {
-        // Implement logic to determine the event type from the message
-        // This could be based on a field in the message or some other metadata
-        // Example pseudo-code:
         _logger.LogInformation($"==> Message: {message}");
 
         var messageType = JsonDocument.Parse(message).RootElement.GetProperty("Type").GetString();

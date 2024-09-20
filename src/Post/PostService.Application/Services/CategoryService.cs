@@ -58,11 +58,11 @@ public class CategoryService : ICategoryService
         if (category is null)
             throw new NullReferenceException(nameof(category));
 
-        //category.RemoveAssociatedPosts();
+        category.RemoveAssociatedPosts();
 
-        //_repository.Remove(category);
+        _repository.Remove(category);
 
-        //await _uow.CommitAsync();
+        await _uow.CommitAsync();
 
         // Publish the CategoryDeletedEvent
         var categoryDeletedEvent = new CategoryDeletedEvent(id);
