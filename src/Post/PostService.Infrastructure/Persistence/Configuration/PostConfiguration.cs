@@ -39,5 +39,12 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
                 .IsRequired()
                 .HasColumnName("Tags");
         });
+
+        builder.OwnsMany(p => p.Comments, cb =>
+        {
+            cb.Property(c => c.Content)
+                .IsRequired()
+                .HasColumnName("Tags");
+        });
     }
 }

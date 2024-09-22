@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using PostService.Application.DTOs.Comment;
 using PostService.Application.DTOs.Post;
 using PostService.Application.Interfaces;
 using PostService.Domain.Aggregates;
@@ -61,6 +62,42 @@ public class PostService : IPostService
             throw new ArgumentNullException(nameof(model));
 
         model.ChangePublishStatus(isPublished: !model.IsPublished);
+
+        await _uow.CommitAsync();
+    }
+
+    public async Task AddCommentToPostAsync(Guid postId, CommentCreateDTO comment)
+    {
+        var model = await _repository.Get(postId);
+
+        if (model is null)
+            throw new ArgumentNullException(nameof(model));
+
+        model.AddComment(comment.Content);
+
+        await _uow.CommitAsync();
+    }
+
+    public async Task UpdateCommentAsync(Guid postId, Guid commentId, CommentUpdateDTO comment)
+    {
+        var model = await _repository.Get(postId);
+        
+         if (model is null)
+            throw new ArgumentNullException(nameof(model));
+
+        model.EditComment(commentId, comment.Content);
+
+        await _uow.CommitAsync();
+    }
+
+    public async Task DeleteCommentAsync(Guid postId, Guid commentId)
+    {
+         var model = await _repository.Get(postId);
+        
+         if (model is null)
+            throw new ArgumentNullException(nameof(model));
+
+        model.RemoveComment(commentId);
 
         await _uow.CommitAsync();
     }

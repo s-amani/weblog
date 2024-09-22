@@ -1,9 +1,6 @@
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using PostService.Domain.Aggreagates;
 using PostService.Domain.Aggregates;
-using PostService.Domain.Entities;
-using PostService.Domain.ValueObjects;
 using PostService.Infrastructure.Persistence.Configuration;
 
 namespace PostService.Infrastructure.Persistence;

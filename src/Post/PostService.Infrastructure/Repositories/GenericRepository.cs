@@ -16,8 +16,8 @@ public class GenericRepository<TKey, TEntity> : IRepositoryBase<TKey, TEntity> w
         _dbContext = dbContext;
     }
 
-    public void Add(in TEntity entity) => _dbContext.Add(entity).State = Microsoft.EntityFrameworkCore.EntityState.Added;
-    public void Update(in TEntity entity) => _dbContext.Update(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+    public void Add(in TEntity entity) => _dbContext.Add(entity).State = EntityState.Added;
+    public void Update(in TEntity entity) => _dbContext.Update(entity).State = EntityState.Modified;
     public void Remove(in TEntity entity) => _dbContext.Remove(entity);
     public async Task Remove(TKey id) => _dbContext.Remove(await _dbContext.FindAsync<TEntity>(id));
 

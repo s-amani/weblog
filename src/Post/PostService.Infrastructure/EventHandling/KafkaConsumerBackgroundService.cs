@@ -91,7 +91,7 @@ public class KafkaConsumerBackgroundService : BackgroundService
                 }
                 catch (OperationCanceledException ex)
                 {
-                    _logger.LogInformation("==> Kafka consumer service is stopping.");
+                    _logger.LogInformation($"==> Kafka consumer service is stopping: {ex}");
                 }
                 finally
                 {

@@ -16,7 +16,8 @@ public class Post : BaseEntity<Guid>
     public string Author { get; set; }
 
     public List<Tag> Tags { get; set; }
-    
+    public List<Comment> Comments { get; set; }
+
     public virtual Guid? CategoryId { get; set; }
 
     public virtual Guid? AuthorId { get; set; }
@@ -64,5 +65,33 @@ public class Post : BaseEntity<Guid>
     public void ChangePublishStatus(bool isPublished)
     {
         IsPublished = isPublished;
+    }
+
+    public void AddComment(string content)
+    {
+        if (Comments is null)
+            Comments = new List<Comment>();
+
+        var comment  = new Comment(content, Id);
+    
+        Comments.Add(comment);
+    }
+
+    public void EditComment(Guid commentId, string content)
+    {
+        var comment  = Comments.FirstOrDefault(x => x.Id == commentId);
+
+        if (comment is null) return;
+
+        comment.EditContent(content);
+    }
+
+    public void RemoveComment(Guid commentId)
+    {
+        var comment = Comments.FirstOrDefault(x => x.Id == commentId);
+
+        if (comment is null) return;
+
+        Comments.Remove(comment);
     }
 }
