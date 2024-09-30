@@ -9,35 +9,25 @@ namespace PostService.API.Controllers;
 
 [ApiController]
 [Route("api/{controller}")]
-public class PostController : ControllerBase
+public class PostController(IPostService postService, ILogger<PostController> logger) : ControllerBase
 {
-    private readonly IPostService _postService;
-
-    private readonly ILogger<PostController> _logger;
-
-    public PostController(IPostService postService, ILogger<PostController> logger)
-    {
-        _postService = postService;
-        _logger = logger;
-    }
-
     [HttpPost]
-    public async Task<ActionResult> Post(PostCreateDTO postDTO)
+    public async Task<ActionResult> Post(PostCreateDTO postDto)
     {
-        var model = await _postService.Create(postDTO);
+        var model = await postService.Create(postDto);
         return CreatedAtAction(nameof(Get), new {Id = model.Id }, model);
     }
     
     [HttpPut]
-    public async Task<ActionResult> Put(Guid? id, PostUpdateDTO postDTO)
+    public async Task<ActionResult> Put(Guid? id, PostUpdateDTO postDto)
     {
         if (id is null) return BadRequest();
 
-        var model = await _postService.Get(id.Value);
+        var model = await postService.Get(id.Value);
 
         if (model is null) return NotFound();
 
-        await _postService.Update(id.Value, postDTO);
+        await postService.Update(id.Value, postDto);
 
         return Ok();
     }
@@ -45,7 +35,7 @@ public class PostController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> Get() 
     {
-        var model = await _postService.Get();
+        var model = await postService.Get();
         
         if (model is null)
             return NotFound();
@@ -56,12 +46,12 @@ public class PostController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult> Get(Guid? id) 
     {
-        _logger.LogInformation($"==> A Get request has been received, ID: {id}");
+        logger.LogInformation($"==> A Get request has been received, ID: {id}");
 
         if (!id.HasValue)
             return BadRequest();
 
-        var model = await _postService.Get(id.Value);
+        var model = await postService.Get(id.Value);
         
         if (model is null)
             return NotFound();
@@ -75,11 +65,11 @@ public class PostController : ControllerBase
     {
         if (id is null) return BadRequest();
 
-        var model = await _postService.Get(id.Value);
+        var model = await postService.Get(id.Value);
 
         if (model is null) return NotFound();
 
-        await _postService.ChangePublishStatus(id.Value);
+        await postService.ChangePublishStatus(id.Value);
 
         return Ok();
     }
