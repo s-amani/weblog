@@ -3,7 +3,19 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
     </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Aggregates\" />
+      <Folder Include="Events\" />
+      <Folder Include="Interfaces\" />
+      <Folder Include="Repositories\" />
+      <Folder Include="ValueObjects\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Shared\Weblog.Shared\Weblog.Shared.csproj" />
+    </ItemGroup>
 
 </Project>

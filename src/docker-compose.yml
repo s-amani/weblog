@@ -1,0 +1,12 @@
+﻿services:
+  webapplication1:
+    image: webapplication1
+    build:
+      context: .
+      dockerfile: User/WebApplication1/Dockerfile
+
+  userservice.api:
+    image: userservice.api
+    build:
+      context: .
+      dockerfile: User/UserService.APi/Dockerfile
